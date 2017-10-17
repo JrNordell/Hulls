@@ -24,7 +24,6 @@ public class QuickHull implements ConvexHullFinder{
         Line2D l = new Line2D.Double(leftMost, rightMost);
         Line2D lB = new Line2D.Double(rightMost, leftMost);
         for (Point2D point: points) {
-
             if(l.relativeCCW(point) > 0){
                 top.add(point);
             }else if(l.relativeCCW(point) < 0){
@@ -43,7 +42,6 @@ public class QuickHull implements ConvexHullFinder{
         for (Point2D point: hull) {
             System.out.println(point.getX());
         }
-
         return hull;
     }
 
@@ -52,7 +50,6 @@ public class QuickHull implements ConvexHullFinder{
         Point2D hullPoint = pointsAB.get(0);
         double temp;
         double dist = 0;
-
         for (Point2D point: pointsAB) {
                 temp = lineAB.ptLineDist(point);
                 if(temp > dist){
@@ -60,7 +57,6 @@ public class QuickHull implements ConvexHullFinder{
                     hullPoint = point;
                 }
             }
-
         Line2D left = new Line2D.Double(lineAB.getP1(), hullPoint);
         Line2D right = new Line2D.Double(hullPoint, lineAB.getP2());
         List<Point2D> leftL = new ArrayList<>();
@@ -72,9 +68,6 @@ public class QuickHull implements ConvexHullFinder{
                 rightL.add(point);
             }
         }
-
-
-
         if(!leftL.isEmpty()) {
             result.addAll(recursiveQuickHull(left, leftL));
             result.add(left.getP2());
@@ -85,7 +78,6 @@ public class QuickHull implements ConvexHullFinder{
         if(!rightL.isEmpty()) {
             result.addAll(recursiveQuickHull(right, rightL));
         }
-
         return result;
     }
 }

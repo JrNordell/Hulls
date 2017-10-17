@@ -1,3 +1,4 @@
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,10 +50,82 @@ public class MergeHull implements ConvexHullFinder {
     //method for doing the bulk of the work for combining the left and right hulls every time
     private List<Point2D> findTangent(List<Point2D> left, List<Point2D> right){
         List<Point2D> result = new ArrayList<>();
+        List<Point2D> leftRight = computeRightLeft(left, right);
+        Point2D rightmost = leftRight.get(0);
+        Point2D leftmost = leftRight.get(1);
+        Line2D lowerTangent = new Line2D.Double(rightmost, leftmost);
+        Line2D upperTangent = new Line2D.Double(leftmost, rightmost);
+
+        boolean isComplete = false;
+        int indexL = left.indexOf(rightmost);
+        int indexR = right.indexOf(leftmost);
+        while(!isComplete){
+            int i = 0;
+            while (i < 2) {
+                if (lowerTangent.relativeCCW(left.get(indexL - 1))<0){
+                    indexL -= 1;
+                    lowerTangent.setLine(left.get(indexL), lowerTangent.getP2());
+                    i = 0;
+                }else if(lowerTangent.relativeCCW(left.get(indexL + 1))<0){
+                    indexL += 1;
+                    lowerTangent.setLine(left.get(indexL), lowerTangent.getP2());
+                    i = 0;
+                }
+            }
+
+            int j = 0;
+            while (j < 2) {
+                if (lowerTangent.relativeCCW(right.get(indexR-1))<0){
+                    indexR -= 1;
+                    lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR-1));
+                    j = 0;
+                }else if(lowerTangent.relativeCCW(left.get(indexR+1))<0){
+                    indexR += 1;
+                    lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR+1));
+                    j = 0;
+                }
+            }
+
+        }
 
 
 
+        return result;
+    }
 
+    private List<Point2D> computeRightLeft(List<Point2D> left, List<Point2D> right){
+        List<Point2D> result = new ArrayList<>();
+        double x = 0;
+        for (Point2D point: left) {
+            if(point.getX() > x){
+                result.set(0, point);
+                x = point.getX();
+            }
+        }
+        x = right.get(0).getX();
+        result.set(1, right.get(0));
+        for (Point2D point: right) {
+            if(point.getX() < x){
+                result.set(1, point);
+                x = point.getX();
+            }
+        }
+//        double y = left.get(0).getY();
+//        result.set(2, right.get(0));
+//        for (Point2D point: left) {
+//            if(point.getY() < y){
+//                result.set(2, point);
+//                y = point.getY();
+//            }
+//        }
+//        y = right.get(0).getY();
+//        result.set(3, right.get(0));
+//        for (Point2D point: right) {
+//            if(point.getY() < y){
+//                result.set(1, point);
+//                y = point.getY();
+//            }
+//        }
 
 
         return result;
