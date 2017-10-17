@@ -62,6 +62,7 @@ public class MergeHull implements ConvexHullFinder {
         while(!isComplete){
             int i = 0;
             while (i < 2) {
+                i++;
                 if (lowerTangent.relativeCCW(left.get(indexL - 1))<0){
                     indexL -= 1;
                     lowerTangent.setLine(left.get(indexL), lowerTangent.getP2());
@@ -75,11 +76,12 @@ public class MergeHull implements ConvexHullFinder {
 
             int j = 0;
             while (j < 2) {
+                j++;
                 if (lowerTangent.relativeCCW(right.get(indexR-1))<0){
                     indexR -= 1;
                     lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR-1));
                     j = 0;
-                }else if(lowerTangent.relativeCCW(left.get(indexR+1))<0){
+                }else if(lowerTangent.relativeCCW(right.get(indexR+1))<0){
                     indexR += 1;
                     lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR+1));
                     j = 0;
@@ -130,4 +132,6 @@ public class MergeHull implements ConvexHullFinder {
 
         return result;
     }
+
+    private
 }
