@@ -18,6 +18,13 @@ public class MergeHull implements ConvexHullFinder {
             public int compare(Point2D o1, Point2D o2) {
                 return Double.compare(o1.getX(), o2.getX());
             }});
+
+        hull = recursiveMergeHull(points);
+
+        System.out.println("Start \n");
+        for (Point2D point: hull) {
+            System.out.println(point.getX());
+        }
         //return hull to gui class
         return hull;
     }
@@ -43,6 +50,7 @@ public class MergeHull implements ConvexHullFinder {
             //create the base case hull of a single point to begin the recursion back to the top
             result = points;
         }
+
         //return the hull
         return result;
     }
@@ -50,54 +58,112 @@ public class MergeHull implements ConvexHullFinder {
     //method for doing the bulk of the work for combining the left and right hulls every time
     private List<Point2D> findTangent(List<Point2D> left, List<Point2D> right){
         List<Point2D> result = new ArrayList<>();
+
+
         List<Point2D> leftRight = computeRightLeft(left, right);
+
+
         Point2D rightmost = leftRight.get(0);
         Point2D leftmost = leftRight.get(1);
+
         Line2D lowerTangent = new Line2D.Double(rightmost, leftmost);
         Line2D upperTangent = new Line2D.Double(leftmost, rightmost);
 
-        boolean isComplete = false;
         int indexL = left.indexOf(rightmost);
         int indexR = right.indexOf(leftmost);
+
+        lowerTangent = calcTangent(lowerTangent, indexL, indexR, left, right);
+        upperTangent = calcTangent(upperTangent, indexR, indexL, right, left);
+
+
+            int i = 0;
+            while(!left.get(i).equals(upperTangent.getP2())){
+                result.add(left.get(i));
+                i++;
+            }
+            result.add(upperTangent.getP2());
+            int j = right.indexOf(upperTangent.getP1());
+            while(!right.get(j).equals(lowerTangent.getP2())){
+                result.add(right.get(j));
+                j = (j+1)%right.size();
+            }
+            result.add(lowerTangent.getP2());
+            i = left.indexOf(lowerTangent.getP1());
+            if(!result.contains(left.get(i))){
+                while (i < left.size()) {
+                    result.add(left.get(i));
+                    i++;
+                }
+            }
+
+        return result;
+    }
+
+    private Line2D calcTangent(Line2D line, int indexL, int indexR, List<Point2D> left, List<Point2D> right){
+        boolean isComplete = false;
         while(!isComplete){
             int i = 0;
-            while (i < 2) {
+            while (i < 1) {
                 i++;
-                if (lowerTangent.relativeCCW(left.get(indexL - 1))<0){
-                    indexL -= 1;
-                    lowerTangent.setLine(left.get(indexL), lowerTangent.getP2());
+                if (line.relativeCCW(left.get(mod(indexL-1, left.size())))<0){
+                    indexL = (indexL - 1);
+                    indexL = mod(indexL, left.size());
+                    line.setLine(left.get(indexL), line.getP2());
                     i = 0;
-                }else if(lowerTangent.relativeCCW(left.get(indexL + 1))<0){
-                    indexL += 1;
-                    lowerTangent.setLine(left.get(indexL), lowerTangent.getP2());
+                }else if(line.relativeCCW(left.get((indexL + 1)%left.size()))<0){
+                    indexL = (indexL + 1)%left.size();
+                    line.setLine(left.get(indexL), line.getP2());
                     i = 0;
                 }
             }
 
             int j = 0;
-            while (j < 2) {
+            while (j < 1) {
                 j++;
-                if (lowerTangent.relativeCCW(right.get(indexR-1))<0){
-                    indexR -= 1;
-                    lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR-1));
+                if (line.relativeCCW(right.get(mod((indexR - 1), right.size())))<0){
+                    indexR = (indexR - 1);
+                    indexR = mod(indexR, right.size());
+                    line.setLine(line.getP1(), right.get(indexR));
                     j = 0;
-                }else if(lowerTangent.relativeCCW(right.get(indexR+1))<0){
-                    indexR += 1;
-                    lowerTangent.setLine(lowerTangent.getP1(), right.get(indexR+1));
+                }else if(line.relativeCCW(right.get((indexR+1)%right.size()))<0){
+                    indexR = (indexR+1)%right.size();
+                    line.setLine(line.getP1(), right.get(indexR));
                     j = 0;
                 }
             }
 
+            if(isTangent(left, line, indexL) && isTangent(right, line, indexR)){
+                isComplete = true;
+            }
+
+        }
+        return line;
+    }
+
+    private boolean isTangent(List<Point2D> list, Line2D tangent, int index){
+        boolean result = true;
+        if(tangent.relativeCCW(list.get(mod(index-1, list.size()))) < 0){
+            result = false;
+        }else if(tangent.relativeCCW(list.get(mod(index+1, list.size()))) < 0){
+            result = false;
         }
 
-
-
+        return result;
+    }
+    private int mod(int a, int b){
+        int result;
+        if(a >= 0){
+            result = a % b;
+        }else{
+            result = b + a;
+        }
         return result;
     }
 
     private List<Point2D> computeRightLeft(List<Point2D> left, List<Point2D> right){
         List<Point2D> result = new ArrayList<>();
-        double x = 0;
+        double x = left.get(0).getX();
+        result.add(left.get(0));
         for (Point2D point: left) {
             if(point.getX() > x){
                 result.set(0, point);
@@ -105,33 +171,16 @@ public class MergeHull implements ConvexHullFinder {
             }
         }
         x = right.get(0).getX();
-        result.set(1, right.get(0));
+        result.add(right.get(0));
         for (Point2D point: right) {
             if(point.getX() < x){
                 result.set(1, point);
                 x = point.getX();
             }
         }
-//        double y = left.get(0).getY();
-//        result.set(2, right.get(0));
-//        for (Point2D point: left) {
-//            if(point.getY() < y){
-//                result.set(2, point);
-//                y = point.getY();
-//            }
-//        }
-//        y = right.get(0).getY();
-//        result.set(3, right.get(0));
-//        for (Point2D point: right) {
-//            if(point.getY() < y){
-//                result.set(1, point);
-//                y = point.getY();
-//            }
-//        }
-
 
         return result;
     }
 
-    private
+
 }

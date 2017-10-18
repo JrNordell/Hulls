@@ -14,6 +14,7 @@ public class QuickHull implements ConvexHullFinder{
         Point2D leftMost = points.get(0);
         Point2D rightMost = points.get(0);
 
+
         for (Point2D point: points) {
             if(point.getX()< leftMost.getX()){
                 leftMost = point;
@@ -44,6 +45,8 @@ public class QuickHull implements ConvexHullFinder{
         }
         return hull;
     }
+
+
 
     private List<Point2D> recursiveQuickHull(Line2D lineAB, List<Point2D>pointsAB){
         List<Point2D> result = new ArrayList<>();
